@@ -100,7 +100,7 @@
     .mainIcon {
       width: clamp(118px, 17vw, 220px);
       height: clamp(118px, 17vw, 220px);
-      color: var(--ink);
+      object-fit: contain;
       filter: drop-shadow(0 1px 0 rgba(255,255,255,0.42)) drop-shadow(0 22px 38px rgba(255,255,255,0.18));
     }
     .tempBlock {
@@ -232,7 +232,7 @@
     .dayIcon {
       width: clamp(34px, 5vw, 64px);
       height: clamp(34px, 5vw, 64px);
-      color: var(--ink);
+      object-fit: contain;
       justify-self: end;
     }
     .dayTemp {
@@ -308,7 +308,7 @@
     <section class="main" aria-label="Vær nå">
       <div>
         <div class="now">
-          <svg class="mainIcon" id="mainIcon" viewBox="0 0 64 64" aria-hidden="true"></svg>
+          <img class="mainIcon" id="mainIcon" alt="" decoding="async" fetchpriority="high" />
           <div class="tempBlock">
             <div class="tempLine"><span id="temp">-</span><span class="degree">°</span></div>
             <div class="desc" id="desc">Henter data</div>
@@ -349,6 +349,7 @@
       snow: "images/snow.jpg",
       fog: "images/fog.jpg"
     };
+    const ICON_BASE = "https://raw.githubusercontent.com/metno/weathericons/main/weather/svg";
 
     const TEXT = {
       clearsky: "Klarvær",
@@ -400,15 +401,9 @@
       return "cloudy";
     }
 
-    function iconSvg(symbol) {
-      const key = keyFromSymbol(symbol);
-      const sun = `<circle cx="32" cy="32" r="9" fill="none" stroke="currentColor" stroke-width="4"/>${[0,45,90,135,180,225,270,315].map(a => `<line x1="32" y1="5" x2="32" y2="13" stroke="currentColor" stroke-width="4" stroke-linecap="round" transform="rotate(${a} 32 32)"/>`).join("")}`;
-      const cloud = `<path d="M20 45h27a10 10 0 0 0 0-20 15 15 0 0 0-29-3A10 10 0 0 0 20 45z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`;
-      const rain = `${cloud}${[24,33,42].map(x => `<line x1="${x}" y1="50" x2="${x-3}" y2="59" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>`).join("")}`;
-      const snow = `${cloud}${[25,33,41].map(x => `<path d="M${x} 52v7M${x-3} 55.5h6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`).join("")}`;
-      const fog = `${cloud}${[51,57].map(y => `<line x1="15" y1="${y}" x2="52" y2="${y}" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity="0.75"/>`).join("")}`;
-      const partly = `<g transform="translate(-8,-8)">${sun}</g>${cloud}`;
-      return key === "clear" ? sun : key === "partlycloudy" ? partly : key === "rain" ? rain : key === "snow" ? snow : key === "fog" ? fog : cloud;
+    function iconUrl(symbol) {
+      const code = String(symbol || "cloudy").replace(/[^a-z0-9_]/gi, "");
+      return `${ICON_BASE}/${code || "cloudy"}.svg`;
     }
 
     function formatTime(date, withSeconds = false) {
@@ -508,7 +503,7 @@
         const el = document.createElement("article");
         el.className = "day";
         el.innerHTML = `
-          <svg class="dayIcon" viewBox="0 0 64 64" aria-hidden="true">${iconSvg(day.symbol)}</svg>
+          <img class="dayIcon" src="${iconUrl(day.symbol)}" alt="" loading="lazy" decoding="async" onerror="this.src='${iconUrl("cloudy")}'">
           <div class="dayTemp">${Number.isFinite(day.temp) ? day.temp : "-"}<sup>°</sup></div>
           <div class="dayName">${dayName(day.time)}</div>
         `;
@@ -540,7 +535,9 @@
       document.getElementById("windArrow").style.transform = Number.isFinite(windFrom) ? `rotate(${(windFrom + 180) % 360}deg)` : "rotate(0deg)";
       document.getElementById("rain").textContent = Number.isFinite(rain) ? Number(rain).toFixed(1) : "-";
       document.getElementById("humidity").textContent = Number.isFinite(humidity) ? humidity : "-";
-      document.getElementById("mainIcon").innerHTML = iconSvg(symbol);
+      const mainIcon = document.getElementById("mainIcon");
+      mainIcon.src = iconUrl(symbol);
+      mainIcon.onerror = () => { mainIcon.src = iconUrl("cloudy"); };
       document.getElementById("bg").style.backgroundImage = `url('${BG_MAP[keyFromSymbol(symbol)] || BG_MAP.cloudy}')`;
       renderForecast(buildDailyForecast(timeseries));
     }
