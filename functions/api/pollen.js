@@ -16,7 +16,14 @@ function decodeHtml(value) {
 }
 
 function stripTags(value) {
-  return decodeHtml(String(value || "").replace(/<[^>]+>/g, "")).trim();
+  return decodeHtml(String(value || "").replace(/<[^>]+>/g, ""))
+    .replace(/Ã¥/g, "å")
+    .replace(/Ã¸/g, "ø")
+    .replace(/Ã¦/g, "æ")
+    .replace(/Ã…/g, "Å")
+    .replace(/Ã˜/g, "Ø")
+    .replace(/Ã†/g, "Æ")
+    .trim();
 }
 
 function parseForecast(html) {
