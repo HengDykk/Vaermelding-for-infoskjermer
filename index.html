@@ -87,6 +87,16 @@
       font-weight: 700;
       color: var(--ink-soft);
     }
+    .topClock {
+      font-size: clamp(28px, 3.8vw, 58px);
+      font-weight: 950;
+      line-height: 0.95;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      text-shadow: 0 1px 0 var(--shine), 0 18px 52px rgba(0,0,0,0.12);
+      white-space: nowrap;
+    }
     .main {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(300px, 0.43fr);
@@ -194,18 +204,10 @@
       line-height: 1;
       transform-origin: 50% 50%;
     }
-    .clock {
+    .sun {
       margin-top: clamp(8px, 1.2vw, 16px);
       padding-top: clamp(10px, 1.3vw, 16px);
       border-top: 2px solid var(--line);
-      font-size: clamp(34px, 4.5vw, 62px);
-      font-weight: 950;
-      line-height: 0.95;
-      letter-spacing: 0;
-      font-variant-numeric: tabular-nums;
-    }
-    .sun {
-      margin-top: 8px;
       display: flex;
       flex-wrap: wrap;
       gap: 8px 16px;
@@ -292,7 +294,7 @@
       .feelsLine { font-size: 14px; }
       .stats { padding: 16px; }
       .stat { font-size: 15px; gap: 12px; }
-      .clock { font-size: 36px; }
+      .topClock { font-size: 28px; }
       .forecast { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .day:nth-child(odd) { border-left: 0; }
     }
@@ -306,6 +308,7 @@
         <div class="city">Stavanger</div>
         <div class="dateLine" id="dateLine">Laster dato</div>
       </div>
+      <div class="topClock" id="clock">--:--:--</div>
     </header>
 
     <section class="main" aria-label="Vær nå">
@@ -322,10 +325,10 @@
 
       <aside class="stats" aria-label="Detaljer">
         <div class="stat"><span class="label">Vind</span><span class="value"><span id="wind">-</span> m/s</span></div>
+        <div class="stat"><span class="label">Vindkast</span><span class="value"><span id="gust">-</span> m/s</span></div>
         <div class="stat"><span class="label">Vindretning</span><span class="value directionValue"><span id="windDir">-</span><span class="windArrow" id="windArrow">↑</span></span></div>
         <div class="stat"><span class="label">Regn</span><span class="value"><span id="rain">-</span> mm</span></div>
         <div class="stat"><span class="label">Luftfuktighet</span><span class="value"><span id="humidity">-</span>%</span></div>
-        <div class="clock" id="clock">--:--:--</div>
         <div class="sun" id="sunrow" style="display:none">
           <span>Sol opp <span id="sunrise">--:--</span></span>
           <span>Sol ned <span id="sunset">--:--</span></span>
@@ -477,6 +480,10 @@
       return d?.next_1_hours?.details?.precipitation_amount ?? d?.next_6_hours?.details?.precipitation_amount ?? 0;
     }
 
+    function windGust(details) {
+      return Number(details?.wind_speed_of_gust ?? details?.wind_speed_of_gust_max ?? details?.wind_gust ?? NaN);
+    }
+
     function feelsLike(tempC, windMs) {
       const temp = Number(tempC);
       const wind = Number(windMs);
@@ -553,6 +560,7 @@
       const symbol = pickSymbol(nowItem);
       const temp = Math.round(details.air_temperature);
       const wind = Number(details.wind_speed);
+      const gust = windGust(details);
       const windFrom = Number(details.wind_from_direction);
       const humidity = Math.round(details.relative_humidity);
       const rain = precip(nowItem);
@@ -562,6 +570,7 @@
       document.getElementById("feels").textContent = Number.isFinite(apparent) ? apparent : "-";
       document.getElementById("desc").textContent = textFor(symbol);
       document.getElementById("wind").textContent = Number.isFinite(wind) ? wind.toFixed(1) : "-";
+      document.getElementById("gust").textContent = Number.isFinite(gust) ? gust.toFixed(1) : "-";
       document.getElementById("windDir").textContent = compassFromDegrees(windFrom);
       document.getElementById("windArrow").style.transform = Number.isFinite(windFrom) ? `rotate(${(windFrom + 180) % 360}deg)` : "rotate(0deg)";
       document.getElementById("rain").textContent = Number.isFinite(rain) ? Number(rain).toFixed(1) : "-";
