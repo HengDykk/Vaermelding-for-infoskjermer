@@ -343,11 +343,23 @@
     const TIMEZONE = "Europe/Oslo";
     const BG_MAP = {
       clear: "images/clear.jpg",
+      clear_night: "images/clear_night.jpg",
+      clear_polartwilight: "images/clear_night.jpg",
       partlycloudy: "images/partlycloudy.jpg",
+      partlycloudy_night: "images/partlycloudy_night.jpg",
+      partlycloudy_polartwilight: "images/partlycloudy_night.jpg",
       cloudy: "images/cloudy.jpg",
+      cloudy_night: "images/cloudy_night.jpg",
+      cloudy_polartwilight: "images/cloudy_night.jpg",
       rain: "images/rain.jpg",
+      rain_night: "images/rain_night.jpg",
+      rain_polartwilight: "images/rain_night.jpg",
       snow: "images/snow.jpg",
-      fog: "images/fog.jpg"
+      snow_night: "images/snow_night.jpg",
+      snow_polartwilight: "images/snow_night.jpg",
+      fog: "images/fog.jpg",
+      fog_night: "images/fog_night.jpg",
+      fog_polartwilight: "images/fog_night.jpg"
     };
     const ICON_BASE = "https://raw.githubusercontent.com/metno/weathericons/main/weather/svg";
 
@@ -399,6 +411,17 @@
       if (c.includes("snow") || c.includes("sleet")) return "snow";
       if (c.includes("rain") || c.includes("showers")) return "rain";
       return "cloudy";
+    }
+
+    function backgroundKeyFromSymbol(code) {
+      const symbol = String(code || "");
+      const base = keyFromSymbol(symbol);
+      const suffix = symbol.includes("_night")
+        ? "_night"
+        : symbol.includes("_polartwilight")
+          ? "_polartwilight"
+          : "";
+      return BG_MAP[`${base}${suffix}`] ? `${base}${suffix}` : base;
     }
 
     function iconUrl(symbol) {
@@ -538,7 +561,7 @@
       const mainIcon = document.getElementById("mainIcon");
       mainIcon.src = iconUrl(symbol);
       mainIcon.onerror = () => { mainIcon.src = iconUrl("cloudy"); };
-      document.getElementById("bg").style.backgroundImage = `url('${BG_MAP[keyFromSymbol(symbol)] || BG_MAP.cloudy}')`;
+      document.getElementById("bg").style.backgroundImage = `url('${BG_MAP[backgroundKeyFromSymbol(symbol)] || BG_MAP.cloudy}')`;
       renderForecast(buildDailyForecast(timeseries));
     }
 
