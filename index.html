@@ -199,7 +199,7 @@
       text-transform: none;
       white-space: nowrap;
     }
-    .directionValue {
+    .windValue {
       display: inline-flex;
       align-items: center;
       justify-content: flex-end;
@@ -339,9 +339,8 @@
       </div>
 
       <aside class="stats" aria-label="Detaljer">
-        <div class="stat"><span class="label">Vind</span><span class="value"><span id="wind">-</span> m/s</span></div>
+        <div class="stat"><span class="label">Vind</span><span class="value windValue"><span id="windDir">-</span><span class="windArrow" id="windArrow">↑</span><span><span id="wind">-</span> m/s</span></span></div>
         <div class="stat"><span class="label">Vindkast</span><span class="value"><span id="gust">-</span> m/s</span></div>
-        <div class="stat"><span class="label">Vindretning</span><span class="value directionValue"><span id="windDir">-</span><span class="windArrow" id="windArrow">↑</span></span></div>
         <div class="stat"><span class="label">Regn</span><span class="value"><span id="rain">-</span> mm</span></div>
         <div class="stat"><span class="label">Luftfuktighet</span><span class="value"><span id="humidity">-</span>%</span></div>
         <div class="stat"><span class="label">Pollen</span><span class="value pollenValue" id="pollen" title="Henter pollenvarsel">Henter</span></div>
