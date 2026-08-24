@@ -364,7 +364,8 @@
       background-size: cover;
     }
     .compat-legacy .bg::after {
-      display: none;
+      display: block;
+      background: rgba(3, 8, 16, 0.28);
     }
     .compat-reduced .mainIcon,
     .compat-legacy .mainIcon {
@@ -386,7 +387,7 @@
     .compat-legacy .stats,
     .compat-legacy .forecast {
       box-shadow: none;
-      background: rgba(12,18,28,0.58);
+      background: rgba(6,12,22,0.46);
     }
     .compat-reduced *,
     .compat-legacy * {
@@ -397,7 +398,7 @@
       display: block;
       width: 1920px;
       height: 1080px;
-      padding: 48px 72px 42px;
+      padding: 48px 72px 36px;
       color: #f3f6fb;
       font-family: Arial, Helvetica, sans-serif;
     }
@@ -413,13 +414,13 @@
     }
     .compat-legacy .topClock {
       float: right;
-      font-size: 58px;
+      font-size: 66px;
     }
     .compat-legacy .city {
-      font-size: 58px;
+      font-size: 66px;
     }
     .compat-legacy .dateLine {
-      font-size: 23px;
+      font-size: 25px;
     }
     .compat-legacy .main {
       clear: both;
@@ -430,9 +431,9 @@
     }
     .compat-legacy .main > div {
       position: absolute;
-      left: 260px;
-      top: 230px;
-      width: 850px;
+      left: 300px;
+      top: 205px;
+      width: 870px;
     }
     .compat-legacy .now {
       display: block;
@@ -440,10 +441,10 @@
     }
     .compat-legacy .mainIcon {
       display: inline-block;
-      width: 180px;
-      height: 180px;
+      width: 190px;
+      height: 190px;
       vertical-align: middle;
-      margin-right: 36px;
+      margin-right: 40px;
     }
     .compat-legacy .tempBlock {
       display: inline-block;
@@ -451,30 +452,31 @@
     }
     .compat-legacy .tempLine {
       display: block;
-      font-size: 238px;
+      font-size: 268px;
     }
     .compat-legacy .desc {
-      font-size: 30px;
+      font-size: 34px;
     }
     .compat-legacy .feelsLine {
-      font-size: 22px;
+      font-size: 24px;
     }
     .compat-legacy .stats {
       display: block;
       position: absolute;
-      right: 150px;
-      top: 150px;
-      width: 410px;
-      padding: 26px;
-      border: 1px solid #657080;
-      background: #101826;
+      right: 135px;
+      top: 176px;
+      width: 450px;
+      padding: 26px 30px;
+      border: 1px solid rgba(170,185,205,0.38);
+      background: rgba(6,12,22,0.42);
     }
     .compat-legacy .stat {
       display: block;
       overflow: hidden;
-      font-size: 22px;
-      padding: 0 0 12px;
-      margin-bottom: 12px;
+      font-size: 24px;
+      padding: 0 0 13px;
+      margin-bottom: 13px;
+      border-bottom: 1px solid rgba(180,195,215,0.28);
     }
     .compat-legacy .label {
       float: left;
@@ -491,42 +493,42 @@
       display: table;
       position: absolute;
       left: 72px;
-      bottom: 42px;
+      bottom: 36px;
       width: 100%;
       width: 1776px;
       table-layout: fixed;
       margin-top: 0;
-      border-top: 1px solid #5d6878;
-      border-bottom: 1px solid #5d6878;
-      background: #101826;
+      border-top: 1px solid rgba(180,195,215,0.28);
+      border-bottom: 1px solid rgba(180,195,215,0.28);
+      background: rgba(6,12,22,0.42);
     }
     .compat-legacy .day {
       display: table-cell;
       width: 25%;
       min-height: 0;
-      height: 150px;
-      padding: 22px;
+      height: 164px;
+      padding: 24px;
       text-align: center;
-      border-left: 1px solid #293241;
+      border-left: 1px solid rgba(180,195,215,0.20);
     }
     .compat-legacy .day:first-child {
       border-left: 0;
     }
     .compat-legacy .dayIcon {
-      width: 56px;
-      height: 56px;
+      width: 64px;
+      height: 64px;
       vertical-align: middle;
-      margin-right: 16px;
+      margin-right: 18px;
     }
     .compat-legacy .dayTemp {
       display: inline-block;
-      font-size: 70px;
+      font-size: 82px;
       vertical-align: middle;
     }
     .compat-legacy .dayName {
       display: block;
-      font-size: 22px;
-      margin-top: 8px;
+      font-size: 24px;
+      margin-top: 6px;
     }
   </style>
 </head>
