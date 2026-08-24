@@ -5,6 +5,37 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Vær Stavanger</title>
   <meta http-equiv="refresh" content="21600">
+  <script>
+    (function (window, document) {
+      var nav = window.navigator || {};
+      var ua = String(nav.userAgent || "");
+      var css = window.CSS;
+      var canTestCss = !!(css && css.supports);
+      var hasGrid = canTestCss && css.supports("display", "grid");
+      var hasClamp = canTestCss && css.supports("width", "clamp(10px, 2vw, 20px)");
+      var hasFilter = canTestCss && (css.supports("filter", "blur(1px)") || css.supports("-webkit-filter", "blur(1px)"));
+      var hasBasicJs = !!(document.getElementById && window.JSON && window.Date && Array.prototype.forEach);
+      var hasFetchStack = !!(window.fetch && window.Promise);
+      var isSamsungSignage = /Tizen|SMART-TV|Maple|SamsungBrowser|Samsung/i.test(ua);
+      var query = String(window.location.search || "").toLowerCase();
+      var mode = "modern";
+
+      if (!hasBasicJs || (!hasFetchStack && !window.XMLHttpRequest)) {
+        mode = "legacy";
+      } else if (!hasGrid || !hasClamp) {
+        mode = isSamsungSignage ? "legacy" : "reduced";
+      } else if (!hasFetchStack || !hasFilter || isSamsungSignage) {
+        mode = "reduced";
+      }
+
+      if (query.indexOf("mode=legacy") !== -1) mode = "legacy";
+      if (query.indexOf("mode=reduced") !== -1) mode = "reduced";
+      if (query.indexOf("mode=modern") !== -1) mode = "modern";
+
+      window.SIGNAGE_MODE = mode;
+      document.documentElement.className += " compat-" + mode;
+    })(window, document);
+  </script>
   <style>
     :root {
       color-scheme: light;
@@ -313,6 +344,154 @@
       .forecast { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .day:nth-child(odd) { border-left: 0; }
     }
+    .compat-reduced .bg,
+    .compat-legacy .bg {
+      filter: none;
+      transform: none;
+    }
+    .compat-reduced .mainIcon,
+    .compat-legacy .mainIcon {
+      filter: none;
+    }
+    .compat-reduced .city,
+    .compat-reduced .topClock,
+    .compat-reduced .tempLine,
+    .compat-legacy .city,
+    .compat-legacy .topClock,
+    .compat-legacy .tempLine {
+      text-shadow: none;
+    }
+    .compat-reduced .stats,
+    .compat-reduced .forecast,
+    .compat-legacy .stats,
+    .compat-legacy .forecast {
+      box-shadow: none;
+      background: rgba(255,255,255,0.34);
+    }
+    .compat-reduced *,
+    .compat-legacy * {
+      transition: none !important;
+      animation: none !important;
+    }
+    .compat-legacy .stage {
+      display: block;
+      width: 1920px;
+      height: 1080px;
+      padding: 48px 72px 42px;
+    }
+    .compat-legacy .topbar {
+      display: block;
+      min-height: 105px;
+    }
+    .compat-legacy .topbar > div:first-child {
+      float: left;
+    }
+    .compat-legacy .topClock {
+      float: right;
+      font-size: 58px;
+    }
+    .compat-legacy .city {
+      font-size: 58px;
+    }
+    .compat-legacy .dateLine {
+      font-size: 23px;
+    }
+    .compat-legacy .main {
+      clear: both;
+      display: table;
+      width: 100%;
+      height: 700px;
+      table-layout: fixed;
+    }
+    .compat-legacy .main > div,
+    .compat-legacy .stats {
+      display: table-cell;
+      vertical-align: middle;
+    }
+    .compat-legacy .main > div {
+      width: 68%;
+    }
+    .compat-legacy .now {
+      display: block;
+      text-align: center;
+    }
+    .compat-legacy .mainIcon {
+      display: inline-block;
+      width: 180px;
+      height: 180px;
+      vertical-align: middle;
+      margin-right: 36px;
+    }
+    .compat-legacy .tempBlock {
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .compat-legacy .tempLine {
+      display: block;
+      font-size: 238px;
+    }
+    .compat-legacy .desc {
+      font-size: 30px;
+    }
+    .compat-legacy .feelsLine {
+      font-size: 22px;
+    }
+    .compat-legacy .stats {
+      width: 410px;
+      padding: 26px;
+    }
+    .compat-legacy .stat {
+      display: block;
+      overflow: hidden;
+      font-size: 22px;
+      padding: 0 0 12px;
+      margin-bottom: 12px;
+    }
+    .compat-legacy .label {
+      float: left;
+    }
+    .compat-legacy .value {
+      float: right;
+    }
+    .compat-legacy .pollenValue,
+    .compat-legacy .sun {
+      display: none !important;
+    }
+    .compat-legacy .forecast {
+      clear: both;
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+      margin-top: 12px;
+    }
+    .compat-legacy .day {
+      display: table-cell;
+      width: 25%;
+      min-height: 0;
+      height: 150px;
+      padding: 22px;
+      text-align: center;
+      border-left: 1px solid rgba(10,17,26,0.13);
+    }
+    .compat-legacy .day:first-child {
+      border-left: 0;
+    }
+    .compat-legacy .dayIcon {
+      width: 56px;
+      height: 56px;
+      vertical-align: middle;
+      margin-right: 16px;
+    }
+    .compat-legacy .dayTemp {
+      display: inline-block;
+      font-size: 70px;
+      vertical-align: middle;
+    }
+    .compat-legacy .dayName {
+      display: block;
+      font-size: 22px;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -358,293 +537,448 @@
   <div class="err" id="err"></div>
 
   <script>
-    const WORKER = "https://vaer-stavanger.arild-dahl-andersen.workers.dev";
-    const LAT = "58.969975";
-    const LON = "5.733107";
-    const TIMEZONE = "Europe/Oslo";
-    const BG_MAP = {
-      clear: "images/clear.jpg",
-      clear_night: "images/clear_night.jpg",
-      clear_polartwilight: "images/clear_night.jpg",
-      partlycloudy: "images/partlycloudy.jpg",
-      partlycloudy_night: "images/partlycloudy_night.jpg",
-      partlycloudy_polartwilight: "images/partlycloudy_night.jpg",
-      cloudy: "images/cloudy.jpg",
-      cloudy_night: "images/cloudy_night.jpg",
-      cloudy_polartwilight: "images/cloudy_night.jpg",
-      rain: "images/rain.jpg",
-      rain_night: "images/rain_night.jpg",
-      rain_polartwilight: "images/rain_night.jpg",
-      snow: "images/snow.jpg",
-      snow_night: "images/snow_night.jpg",
-      snow_polartwilight: "images/snow_night.jpg",
-      fog: "images/fog.jpg",
-      fog_night: "images/fog_night.jpg",
-      fog_polartwilight: "images/fog_night.jpg"
-    };
-    const ICON_BASE = "https://raw.githubusercontent.com/metno/weathericons/main/weather/svg";
+    (function () {
+      var WORKER = "https://vaer-stavanger.arild-dahl-andersen.workers.dev";
+      var LAT = "58.969975";
+      var LON = "5.733107";
+      var TIMEZONE = "Europe/Oslo";
+      var MODE = window.SIGNAGE_MODE || "modern";
+      var WEATHER_INTERVAL = MODE === "legacy" ? 15 * 60 * 1000 : 10 * 60 * 1000;
+      var CLOCK_INTERVAL = MODE === "legacy" ? 60 * 1000 : 1000;
+      var BG_MAP = {
+        clear: "images/clear.jpg",
+        clear_night: "images/clear_night.jpg",
+        clear_polartwilight: "images/clear_night.jpg",
+        partlycloudy: "images/partlycloudy.jpg",
+        partlycloudy_night: "images/partlycloudy_night.jpg",
+        partlycloudy_polartwilight: "images/partlycloudy_night.jpg",
+        cloudy: "images/cloudy.jpg",
+        cloudy_night: "images/cloudy_night.jpg",
+        cloudy_polartwilight: "images/cloudy_night.jpg",
+        rain: "images/rain.jpg",
+        rain_night: "images/rain_night.jpg",
+        rain_polartwilight: "images/rain_night.jpg",
+        snow: "images/snow.jpg",
+        snow_night: "images/snow_night.jpg",
+        snow_polartwilight: "images/snow_night.jpg",
+        fog: "images/fog.jpg",
+        fog_night: "images/fog_night.jpg",
+        fog_polartwilight: "images/fog_night.jpg"
+      };
+      var ICON_BASE = "https://raw.githubusercontent.com/metno/weathericons/main/weather/svg";
+      var TEXT = {
+        clearsky: "Klarvær",
+        fair: "Lettskyet",
+        partlycloudy: "Delvis skyet",
+        cloudy: "Skyet",
+        fog: "Tåke",
+        rain: "Regn",
+        heavyrain: "Kraftig regn",
+        lightrain: "Lett regn",
+        rainshowers: "Regnbyger",
+        heavyrainshowers: "Kraftige regnbyger",
+        lightrainshowers: "Lette regnbyger",
+        sleet: "Sludd",
+        heavysleet: "Kraftig sludd",
+        lightsleet: "Lett sludd",
+        sleetshowers: "Sluddbyger",
+        snow: "Snø",
+        heavysnow: "Kraftig snø",
+        lightsnow: "Lett snø",
+        snowshowers: "Snøbyger",
+        thunderstorms: "Tordenvær",
+        rainandthunder: "Regn og torden",
+        snowandthunder: "Snø og torden"
+      };
+      var WEEKDAYS = ["SØNDAG", "MANDAG", "TIRSDAG", "ONSDAG", "TORSDAG", "FREDAG", "LØRDAG"];
+      var MONTHS = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
 
-    const TEXT = {
-      clearsky: "Klarvær",
-      fair: "Lettskyet",
-      partlycloudy: "Delvis skyet",
-      cloudy: "Skyet",
-      fog: "Tåke",
-      rain: "Regn",
-      heavyrain: "Kraftig regn",
-      lightrain: "Lett regn",
-      rainshowers: "Regnbyger",
-      heavyrainshowers: "Kraftige regnbyger",
-      lightrainshowers: "Lette regnbyger",
-      sleet: "Sludd",
-      heavysleet: "Kraftig sludd",
-      lightsleet: "Lett sludd",
-      sleetshowers: "Sluddbyger",
-      snow: "Snø",
-      heavysnow: "Kraftig snø",
-      lightsnow: "Lett snø",
-      snowshowers: "Snøbyger",
-      thunderstorms: "Tordenvær",
-      rainandthunder: "Regn og torden",
-      snowandthunder: "Snø og torden"
-    };
-
-    function baseSymbol(code) {
-      return String(code || "").replace(/_(day|night|polartwilight)$/, "");
-    }
-
-    function textFor(code) {
-      const base = baseSymbol(code);
-      if (TEXT[base]) return TEXT[base];
-      if (base.includes("andthunder")) {
-        const left = base.replace("andthunder", "");
-        return TEXT[left] ? `${TEXT[left]} og torden` : "Torden";
+      function el(id) {
+        return document.getElementById(id);
       }
-      return "Ukjent";
-    }
 
-    function keyFromSymbol(code) {
-      const c = String(code || "");
-      if (c.includes("clearsky") || c.includes("fair")) return "clear";
-      if (c.includes("partlycloudy")) return "partlycloudy";
-      if (c.includes("cloudy")) return "cloudy";
-      if (c.includes("fog")) return "fog";
-      if (c.includes("snow") || c.includes("sleet")) return "snow";
-      if (c.includes("rain") || c.includes("showers")) return "rain";
-      return "cloudy";
-    }
-
-    function backgroundKeyFromSymbol(code) {
-      const symbol = String(code || "");
-      const base = keyFromSymbol(symbol);
-      const suffix = symbol.includes("_night")
-        ? "_night"
-        : symbol.includes("_polartwilight")
-          ? "_polartwilight"
-          : "";
-      return BG_MAP[`${base}${suffix}`] ? `${base}${suffix}` : base;
-    }
-
-    function isNightSymbol(code) {
-      const symbol = String(code || "");
-      return symbol.includes("_night") || symbol.includes("_polartwilight");
-    }
-
-    function iconUrl(symbol) {
-      const code = String(symbol || "cloudy").replace(/[^a-z0-9_]/gi, "");
-      return `${ICON_BASE}/${code || "cloudy"}.svg`;
-    }
-
-    function formatTime(date, withSeconds = false) {
-      return new Intl.DateTimeFormat("no-NO", {
-        timeZone: TIMEZONE,
-        hour: "2-digit",
-        minute: "2-digit",
-        second: withSeconds ? "2-digit" : undefined,
-        hour12: false
-      }).format(date);
-    }
-
-    function formatDateLine(date) {
-      const weekday = new Intl.DateTimeFormat("no-NO", { timeZone: TIMEZONE, weekday: "long" }).format(date);
-      const dayMonth = new Intl.DateTimeFormat("no-NO", { timeZone: TIMEZONE, day: "numeric", month: "long" }).format(date);
-      return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)}, ${dayMonth}`;
-    }
-
-    function localDateKey(date) {
-      return new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
-    }
-
-    function dayName(date) {
-      return new Intl.DateTimeFormat("no-NO", { timeZone: TIMEZONE, weekday: "long" }).format(date).toUpperCase();
-    }
-
-    async function fetchJson(url) {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
-    }
-
-    function pickSymbol(item) {
-      const d = item?.data || {};
-      return d?.next_1_hours?.summary?.symbol_code || d?.next_6_hours?.summary?.symbol_code || d?.next_12_hours?.summary?.symbol_code || "";
-    }
-
-    function precip(item) {
-      const d = item?.data || {};
-      return d?.next_1_hours?.details?.precipitation_amount ?? d?.next_6_hours?.details?.precipitation_amount ?? 0;
-    }
-
-    function windGust(details) {
-      return Number(details?.wind_speed_of_gust ?? details?.wind_speed_of_gust_max ?? details?.wind_gust ?? NaN);
-    }
-
-    function feelsLike(tempC, windMs) {
-      const temp = Number(tempC);
-      const wind = Number(windMs);
-      if (!Number.isFinite(temp)) return NaN;
-      if (Number.isFinite(wind) && temp <= 10 && wind > 1.34) {
-        const windKmh = wind * 3.6;
-        return 13.12 + 0.6215 * temp - 11.37 * Math.pow(windKmh, 0.16) + 0.3965 * temp * Math.pow(windKmh, 0.16);
+      function finite(value) {
+        return typeof Number.isFinite === "function" ? Number.isFinite(value) : isFinite(value);
       }
-      return temp;
-    }
 
-    function compassFromDegrees(degrees) {
-      const deg = Number(degrees);
-      if (!Number.isFinite(deg)) return "-";
-      const directions = ["N", "NØ", "Ø", "SØ", "S", "SV", "V", "NV"];
-      return directions[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
-    }
-
-    function updateClock() {
-      const now = new Date();
-      document.getElementById("clock").textContent = formatTime(now, true);
-      document.getElementById("dateLine").textContent = formatDateLine(now);
-    }
-
-    function buildDailyForecast(timeseries) {
-      const today = localDateKey(new Date());
-      const buckets = new Map();
-      timeseries.forEach(item => {
-        const time = new Date(item.time);
-        const key = localDateKey(time);
-        if (key === today) return;
-        if (!buckets.has(key)) buckets.set(key, []);
-        buckets.get(key).push({ time, item });
-      });
-
-      return Array.from(buckets.values()).slice(0, 4).map(entries => {
-        const best = entries.reduce((closest, current) => {
-          const h = Number(new Intl.DateTimeFormat("en-US", { timeZone: TIMEZONE, hour: "numeric", hour12: false }).format(current.time));
-          const cH = Number(new Intl.DateTimeFormat("en-US", { timeZone: TIMEZONE, hour: "numeric", hour12: false }).format(closest.time));
-          return Math.abs(h - 13) < Math.abs(cH - 13) ? current : closest;
-        }, entries[0]);
-        const details = best.item?.data?.instant?.details || {};
-        return {
-          time: best.time,
-          temp: Math.round(details.air_temperature),
-          symbol: pickSymbol(best.item)
-        };
-      });
-    }
-
-    function renderForecast(days) {
-      const root = document.getElementById("forecast");
-      root.innerHTML = "";
-      days.forEach(day => {
-        const el = document.createElement("article");
-        el.className = "day";
-        el.innerHTML = `
-          <img class="dayIcon" src="${iconUrl(day.symbol)}" alt="" loading="lazy" decoding="async" onerror="this.src='${iconUrl("cloudy")}'">
-          <div class="dayTemp">${Number.isFinite(day.temp) ? day.temp : "-"}<sup>°</sup></div>
-          <div class="dayName">${dayName(day.time)}</div>
-        `;
-        root.appendChild(el);
-      });
-    }
-
-    async function loadWeather() {
-      document.getElementById("err").textContent = "";
-      const data = await fetchJson(`${WORKER}?lat=${encodeURIComponent(LAT)}&lon=${encodeURIComponent(LON)}`);
-      const timeseries = data?.properties?.timeseries;
-      if (!Array.isArray(timeseries) || !timeseries.length) throw new Error("Mangler timeseries");
-
-      const nowItem = timeseries[0];
-      const details = nowItem?.data?.instant?.details || {};
-      const symbol = pickSymbol(nowItem);
-      const temp = Math.round(details.air_temperature);
-      const wind = Number(details.wind_speed);
-      const gust = windGust(details);
-      const windFrom = Number(details.wind_from_direction);
-      const humidity = Math.round(details.relative_humidity);
-      const rain = precip(nowItem);
-      const apparent = Math.round(feelsLike(details.air_temperature, wind));
-
-      document.getElementById("temp").textContent = Number.isFinite(temp) ? temp : "-";
-      document.getElementById("feels").textContent = Number.isFinite(apparent) ? apparent : "-";
-      document.getElementById("desc").textContent = textFor(symbol);
-      document.getElementById("wind").textContent = Number.isFinite(wind) ? wind.toFixed(1) : "-";
-      document.getElementById("gust").textContent = Number.isFinite(gust) ? gust.toFixed(1) : "-";
-      document.getElementById("windDir").textContent = compassFromDegrees(windFrom);
-      document.getElementById("windArrow").style.transform = Number.isFinite(windFrom) ? `rotate(${(windFrom + 180) % 360}deg)` : "rotate(0deg)";
-      document.getElementById("rain").textContent = Number.isFinite(rain) ? Number(rain).toFixed(1) : "-";
-      document.getElementById("humidity").textContent = Number.isFinite(humidity) ? humidity : "-";
-      const mainIcon = document.getElementById("mainIcon");
-      mainIcon.src = iconUrl(symbol);
-      mainIcon.onerror = () => { mainIcon.src = iconUrl("cloudy"); };
-      document.body.dataset.theme = isNightSymbol(symbol) ? "night" : "day";
-      document.getElementById("bg").style.backgroundImage = `url('${BG_MAP[backgroundKeyFromSymbol(symbol)] || BG_MAP.cloudy}')`;
-      renderForecast(buildDailyForecast(timeseries));
-    }
-
-    async function loadPollen() {
-      try {
-        const data = await fetchJson("/api/pollen");
-        if (data?.error) throw new Error(data.error);
-        const pollen = document.getElementById("pollen");
-        const active = Array.isArray(data.active) ? data.active : [];
-        pollen.textContent = data.summary || "Ingen";
-        pollen.title = active.length
-          ? active.map(item => `${item.name}: ${item.levelText}`).join(" · ")
-          : "Ingen registrert pollenspredning i Rogaland i dag";
-      } catch (_) {
-        const pollen = document.getElementById("pollen");
-        pollen.textContent = "-";
-        pollen.title = "Kunne ikke hente pollenvarsel";
+      function read(object, path, fallback) {
+        var current = object;
+        var i;
+        for (i = 0; i < path.length; i += 1) {
+          if (current == null) return fallback;
+          current = current[path[i]];
+        }
+        return current == null ? fallback : current;
       }
-    }
 
-    async function loadSunTimes() {
-      try {
-        const dateStr = localDateKey(new Date());
-        const data = await fetchJson(`https://api.met.no/weatherapi/sunrise/3.0/sun?lat=${encodeURIComponent(LAT)}&lon=${encodeURIComponent(LON)}&date=${encodeURIComponent(dateStr)}&offset=+00:00`);
-        const sunrise = data?.location?.time?.[0]?.sunrise?.time;
-        const sunset = data?.location?.time?.[0]?.sunset?.time;
-        if (!sunrise || !sunset) throw new Error("Mangler soldata");
-        document.getElementById("sunrise").textContent = formatTime(new Date(sunrise));
-        document.getElementById("sunset").textContent = formatTime(new Date(sunset));
-        document.getElementById("sunrow").style.display = "flex";
-      } catch (_) {
-        document.getElementById("sunrow").style.display = "none";
+      function hasText(value, token) {
+        return String(value || "").indexOf(token) !== -1;
       }
-    }
 
-    async function boot() {
-      try {
+      function baseSymbol(code) {
+        return String(code || "").replace(/_(day|night|polartwilight)$/, "");
+      }
+
+      function textFor(code) {
+        var base = baseSymbol(code);
+        var left;
+        if (TEXT[base]) return TEXT[base];
+        if (hasText(base, "andthunder")) {
+          left = base.replace("andthunder", "");
+          return TEXT[left] ? TEXT[left] + " og torden" : "Torden";
+        }
+        return "Ukjent";
+      }
+
+      function keyFromSymbol(code) {
+        var c = String(code || "");
+        if (hasText(c, "clearsky") || hasText(c, "fair")) return "clear";
+        if (hasText(c, "partlycloudy")) return "partlycloudy";
+        if (hasText(c, "cloudy")) return "cloudy";
+        if (hasText(c, "fog")) return "fog";
+        if (hasText(c, "snow") || hasText(c, "sleet")) return "snow";
+        if (hasText(c, "rain") || hasText(c, "showers")) return "rain";
+        return "cloudy";
+      }
+
+      function backgroundKeyFromSymbol(code) {
+        var symbol = String(code || "");
+        var base = keyFromSymbol(symbol);
+        var suffix = hasText(symbol, "_night") ? "_night" : (hasText(symbol, "_polartwilight") ? "_polartwilight" : "");
+        return BG_MAP[base + suffix] ? base + suffix : base;
+      }
+
+      function isNightSymbol(code) {
+        var symbol = String(code || "");
+        return hasText(symbol, "_night") || hasText(symbol, "_polartwilight");
+      }
+
+      function iconUrl(symbol) {
+        var code = String(symbol || "cloudy").replace(/[^a-z0-9_]/gi, "");
+        return ICON_BASE + "/" + (code || "cloudy") + ".svg";
+      }
+
+      function two(value) {
+        return value < 10 ? "0" + value : String(value);
+      }
+
+      function intlFormat(date, options) {
+        if (!window.Intl || !Intl.DateTimeFormat) return "";
+        try {
+          return new Intl.DateTimeFormat("no-NO", options).format(date);
+        } catch (_) {
+          return "";
+        }
+      }
+
+      function formatTime(date, withSeconds) {
+        var formatted = intlFormat(date, {
+          timeZone: TIMEZONE,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: withSeconds ? "2-digit" : undefined,
+          hour12: false
+        });
+        if (formatted) return formatted;
+        return two(date.getHours()) + ":" + two(date.getMinutes()) + (withSeconds ? ":" + two(date.getSeconds()) : "");
+      }
+
+      function formatDateLine(date) {
+        var weekday = intlFormat(date, { timeZone: TIMEZONE, weekday: "long" });
+        var dayMonth = intlFormat(date, { timeZone: TIMEZONE, day: "numeric", month: "long" });
+        if (weekday && dayMonth) return weekday.charAt(0).toUpperCase() + weekday.slice(1) + ", " + dayMonth;
+        return WEEKDAYS[date.getDay()].charAt(0) + WEEKDAYS[date.getDay()].slice(1).toLowerCase() + ", " + date.getDate() + ". " + MONTHS[date.getMonth()];
+      }
+
+      function localDateKey(date) {
+        var formatted = window.Intl && Intl.DateTimeFormat ? new Intl.DateTimeFormat("en-CA", {
+          timeZone: TIMEZONE,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        }).format(date) : "";
+        if (formatted) return formatted;
+        return date.getFullYear() + "-" + two(date.getMonth() + 1) + "-" + two(date.getDate());
+      }
+
+      function hourInOslo(date) {
+        var formatted = window.Intl && Intl.DateTimeFormat ? new Intl.DateTimeFormat("en-US", {
+          timeZone: TIMEZONE,
+          hour: "numeric",
+          hour12: false
+        }).format(date) : "";
+        return Number(formatted || date.getHours());
+      }
+
+      function dayName(date) {
+        var formatted = intlFormat(date, { timeZone: TIMEZONE, weekday: "long" });
+        return formatted ? formatted.toUpperCase() : WEEKDAYS[date.getDay()];
+      }
+
+      function fetchJson(url, done) {
+        if (window.fetch && window.Promise) {
+          fetch(url, { cache: "no-store" })
+            .then(function (res) {
+              if (!res.ok) throw new Error("HTTP " + res.status);
+              return res.json();
+            })
+            .then(function (data) { done(null, data); })
+            .catch(function (error) { done(error); });
+          return;
+        }
+
+        if (!window.XMLHttpRequest) {
+          done(new Error("Nettleseren kan ikke hente data"));
+          return;
+        }
+
+        try {
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", url, true);
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState !== 4) return;
+            if (xhr.status < 200 || xhr.status >= 300) {
+              done(new Error("HTTP " + xhr.status));
+              return;
+            }
+            try {
+              done(null, JSON.parse(xhr.responseText));
+            } catch (error) {
+              done(error);
+            }
+          };
+          xhr.send(null);
+        } catch (error) {
+          done(error);
+        }
+      }
+
+      function pickSymbol(item) {
+        return read(item, ["data", "next_1_hours", "summary", "symbol_code"], "") ||
+          read(item, ["data", "next_6_hours", "summary", "symbol_code"], "") ||
+          read(item, ["data", "next_12_hours", "summary", "symbol_code"], "");
+      }
+
+      function precip(item) {
+        var oneHour = read(item, ["data", "next_1_hours", "details", "precipitation_amount"], null);
+        var sixHours = read(item, ["data", "next_6_hours", "details", "precipitation_amount"], null);
+        return oneHour == null ? (sixHours == null ? 0 : sixHours) : oneHour;
+      }
+
+      function windGust(details) {
+        var value = read(details, ["wind_speed_of_gust"], null);
+        if (value == null) value = read(details, ["wind_speed_of_gust_max"], null);
+        if (value == null) value = read(details, ["wind_gust"], NaN);
+        return Number(value);
+      }
+
+      function feelsLike(tempC, windMs) {
+        var temp = Number(tempC);
+        var wind = Number(windMs);
+        var windKmh;
+        if (!finite(temp)) return NaN;
+        if (finite(wind) && temp <= 10 && wind > 1.34) {
+          windKmh = wind * 3.6;
+          return 13.12 + 0.6215 * temp - 11.37 * Math.pow(windKmh, 0.16) + 0.3965 * temp * Math.pow(windKmh, 0.16);
+        }
+        return temp;
+      }
+
+      function compassFromDegrees(degrees) {
+        var deg = Number(degrees);
+        var directions = ["N", "NØ", "Ø", "SØ", "S", "SV", "V", "NV"];
+        if (!finite(deg)) return "-";
+        return directions[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
+      }
+
+      function setText(id, value) {
+        var node = el(id);
+        if (node) node.textContent = value;
+      }
+
+      function updateClock() {
+        var now = new Date();
+        setText("clock", formatTime(now, MODE !== "legacy"));
+        setText("dateLine", formatDateLine(now));
+      }
+
+      function buildDailyForecast(timeseries) {
+        var today = localDateKey(new Date());
+        var buckets = {};
+        var order = [];
+        var i;
+        var item;
+        var time;
+        var key;
+        var days = [];
+
+        for (i = 0; i < timeseries.length; i += 1) {
+          item = timeseries[i];
+          time = new Date(item.time);
+          key = localDateKey(time);
+          if (key === today) continue;
+          if (!buckets[key]) {
+            buckets[key] = [];
+            order.push(key);
+          }
+          buckets[key].push({ time: time, item: item });
+        }
+
+        for (i = 0; i < order.length && days.length < 4; i += 1) {
+          var entries = buckets[order[i]];
+          var best = entries[0];
+          var j;
+          for (j = 1; j < entries.length; j += 1) {
+            if (Math.abs(hourInOslo(entries[j].time) - 13) < Math.abs(hourInOslo(best.time) - 13)) {
+              best = entries[j];
+            }
+          }
+          days.push({
+            time: best.time,
+            temp: Math.round(Number(read(best.item, ["data", "instant", "details", "air_temperature"], NaN))),
+            symbol: pickSymbol(best.item)
+          });
+        }
+        return days;
+      }
+
+      function renderForecast(days) {
+        var root = el("forecast");
+        var fallbackIcon = iconUrl("cloudy");
+        var i;
+        var day;
+        var html = "";
+        if (!root) return;
+        for (i = 0; i < days.length; i += 1) {
+          day = days[i];
+          html += '<article class="day">' +
+            '<img class="dayIcon" src="' + iconUrl(day.symbol) + '" alt="" loading="lazy" decoding="async" onerror="this.src=\'' + fallbackIcon + '\'">' +
+            '<div class="dayTemp">' + (finite(day.temp) ? day.temp : "-") + '<sup>°</sup></div>' +
+            '<div class="dayName">' + dayName(day.time) + '</div>' +
+            '</article>';
+        }
+        root.innerHTML = html || '<div class="loading">Ingen prognose</div>';
+      }
+
+      function loadWeather(done) {
+        setText("err", "");
+        fetchJson(WORKER + "?lat=" + encodeURIComponent(LAT) + "&lon=" + encodeURIComponent(LON), function (error, data) {
+          var timeseries;
+          var nowItem;
+          var details;
+          var symbol;
+          var temp;
+          var wind;
+          var gust;
+          var windFrom;
+          var humidity;
+          var rain;
+          var apparent;
+          var mainIcon;
+          var bg;
+          if (error) {
+            if (done) done(error);
+            return;
+          }
+          timeseries = read(data, ["properties", "timeseries"], []);
+          if (!timeseries || !timeseries.length) {
+            if (done) done(new Error("Mangler timeseries"));
+            return;
+          }
+
+          nowItem = timeseries[0];
+          details = read(nowItem, ["data", "instant", "details"], {});
+          symbol = pickSymbol(nowItem);
+          temp = Math.round(Number(details.air_temperature));
+          wind = Number(details.wind_speed);
+          gust = windGust(details);
+          windFrom = Number(details.wind_from_direction);
+          humidity = Math.round(Number(details.relative_humidity));
+          rain = precip(nowItem);
+          apparent = Math.round(feelsLike(details.air_temperature, wind));
+
+          setText("temp", finite(temp) ? temp : "-");
+          setText("feels", finite(apparent) ? apparent : "-");
+          setText("desc", textFor(symbol));
+          setText("wind", finite(wind) ? wind.toFixed(1) : "-");
+          setText("gust", finite(gust) ? gust.toFixed(1) : "-");
+          setText("windDir", compassFromDegrees(windFrom));
+          setText("rain", finite(Number(rain)) ? Number(rain).toFixed(1) : "-");
+          setText("humidity", finite(humidity) ? humidity : "-");
+
+          if (el("windArrow")) {
+            el("windArrow").style.transform = finite(windFrom) ? "rotate(" + ((windFrom + 180) % 360) + "deg)" : "rotate(0deg)";
+          }
+          mainIcon = el("mainIcon");
+          if (mainIcon) {
+            mainIcon.src = iconUrl(symbol);
+            mainIcon.onerror = function () { mainIcon.src = iconUrl("cloudy"); };
+          }
+          document.body.setAttribute("data-theme", isNightSymbol(symbol) ? "night" : "day");
+          bg = el("bg");
+          if (bg) bg.style.backgroundImage = "url('" + (BG_MAP[backgroundKeyFromSymbol(symbol)] || BG_MAP.cloudy) + "')";
+          renderForecast(buildDailyForecast(timeseries));
+          if (done) done(null);
+        });
+      }
+
+      function loadPollen() {
+        if (MODE === "legacy") return;
+        fetchJson("/api/pollen", function (error, data) {
+          var pollen = el("pollen");
+          var active;
+          var title = "";
+          var i;
+          if (!pollen) return;
+          if (error || !data || data.error) {
+            pollen.textContent = "-";
+            pollen.title = "Kunne ikke hente pollenvarsel";
+            return;
+          }
+          active = data.active && data.active.length ? data.active : [];
+          pollen.textContent = data.summary || "Ingen";
+          if (active.length) {
+            for (i = 0; i < active.length; i += 1) {
+              title += (i ? " · " : "") + active[i].name + ": " + active[i].levelText;
+            }
+          }
+          pollen.title = title || "Ingen registrert pollenspredning i Rogaland i dag";
+        });
+      }
+
+      function loadSunTimes() {
+        if (MODE === "legacy") return;
+        fetchJson("https://api.met.no/weatherapi/sunrise/3.0/sun?lat=" + encodeURIComponent(LAT) + "&lon=" + encodeURIComponent(LON) + "&date=" + encodeURIComponent(localDateKey(new Date())) + "&offset=+00:00", function (error, data) {
+          var sunrise = read(data, ["location", "time", 0, "sunrise", "time"], null);
+          var sunset = read(data, ["location", "time", 0, "sunset", "time"], null);
+          var row = el("sunrow");
+          if (error || !sunrise || !sunset) {
+            if (row) row.style.display = "none";
+            return;
+          }
+          setText("sunrise", formatTime(new Date(sunrise), false));
+          setText("sunset", formatTime(new Date(sunset), false));
+          if (row) row.style.display = "flex";
+        });
+      }
+
+      function boot() {
         updateClock();
-        await loadWeather();
-        await loadPollen();
-        await loadSunTimes();
-      } catch (error) {
-        document.getElementById("err").textContent = String(error?.stack || error);
+        loadWeather(function (error) {
+          if (error) {
+            setText("err", String(error && (error.stack || error.message) || error));
+            return;
+          }
+          loadPollen();
+          loadSunTimes();
+        });
       }
-    }
 
-    updateClock();
-    boot();
-    setInterval(updateClock, 1000);
-    setInterval(boot, 5 * 60 * 1000);
+      updateClock();
+      boot();
+      window.setInterval(updateClock, CLOCK_INTERVAL);
+      window.setInterval(boot, WEATHER_INTERVAL);
+    })();
   </script>
 </body>
 </html>
